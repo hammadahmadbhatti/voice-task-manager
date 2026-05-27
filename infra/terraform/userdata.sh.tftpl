@@ -4,7 +4,16 @@ exec > >(tee /var/log/vtm-userdata.log|logger -t vtm-userdata -s 2>/dev/console)
 
 # ---------- packages ----------
 apt-get update
-apt-get install -y curl ca-certificates gnupg debian-keyring debian-archive-keyring apt-transport-https jq
+apt-get install -y curl ca-certificates gnupg debian-keyring debian-archive-keyring apt-transport-https jq unzip
+
+# AWS CLI v2 — needed by the deploy scripts (s3 cp, ssm get-parameter).
+# Ubuntu base AMIs don't include it.
+if ! command -v aws >/dev/null 2>&1; then
+  curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+  unzip -q /tmp/awscliv2.zip -d /tmp
+  /tmp/aws/install
+  rm -rf /tmp/aws /tmp/awscliv2.zip
+fi
 
 # Node.js 20 (NodeSource)
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
