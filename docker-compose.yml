@@ -1,0 +1,36 @@
+# Local-only services for development.
+# Production runs on AWS RDS (PostgreSQL managed, not local).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vtm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vtm
+      POSTGRES_PASSWORD: vtm
+      POSTGRES_DB: vtm
+    ports:
+      - "5432:5432"
+    volumes:
+      - vtm-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vtm -d vtm"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  # Optional: pgweb for clicking through tables during dev
+  pgweb:
+    image: sosedoff/pgweb:latest
+    container_name: vtm-pgweb
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      DATABASE_URL: postgres://vtm:vtm@postgres:5432/vtm?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  vtm-pg-data:

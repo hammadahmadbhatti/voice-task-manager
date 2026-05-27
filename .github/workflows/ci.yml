@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel older runs on the same PR/branch — saves CI minutes on rapid pushes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Default to read-only token. Deploy workflow re-grants `id-token: write` for OIDC.
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: Install + cache deps
+    runs-on: ubuntu-latest
+    outputs:
+      pnpm-store-path: ${{ steps.pnpm-store.outputs.path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+      - run: pnpm install --frozen-lockfile
+
+  typecheck:
+    name: Typecheck
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck all workspaces
+        run: pnpm -r typecheck
+
+  build:
+    name: Build
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build realtime
+        run: pnpm --filter @vtm/realtime build
+      - name: Build web (Next.js)
+        env:
+          # Build needs *some* value for these — real keys come from Vercel.
+          NEXT_PUBLIC_WS_URL: http://localhost:4000
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+          NEXT_PUBLIC_COGNITO_DOMAIN: example.auth.eu-central-1.amazoncognito.com
+          NEXT_PUBLIC_COGNITO_CLIENT_ID: build-placeholder
+          NEXT_PUBLIC_COGNITO_REDIRECT_URI: http://localhost:3000/en/auth/callback
+          NEXT_PUBLIC_DEFAULT_LOCALE: en
+          NEXT_PUBLIC_ALLOW_ANONYMOUS: "true"
+        run: pnpm --filter @vtm/web build
+
+  test:
+    name: Unit tests
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run vitest suite
+        run: pnpm -r --if-present test
+
+  terraform:
+    name: Terraform fmt + validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+      - name: terraform fmt
+        run: terraform fmt -check -recursive
+      - name: terraform init (no backend)
+        run: terraform init -backend=false
+      - name: terraform validate
+        run: terraform validate -no-color

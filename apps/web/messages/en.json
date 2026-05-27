@@ -1,0 +1,50 @@
+{
+  "app": {
+    "title": "Voice Task Manager",
+    "tagline": "Manage your day by talking to it.",
+    "tagline_long": "Plan, reschedule, and delete tasks just by speaking. No buttons. No typing."
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "continueAsGuest": "Continue as guest",
+    "signInWithGoogle": "Sign in with Google",
+    "signOut": "Sign out",
+    "userMenu": "Account"
+  },
+  "mic": {
+    "tapToTalk": "Tap to talk",
+    "listening": "Listening…",
+    "thinking": "Thinking…",
+    "speaking": "Speaking…",
+    "interrupt": "Interrupt",
+    "permission": "We need your microphone to listen. Grant access in your browser.",
+    "blocked": "Microphone access is blocked. Open site settings to enable it."
+  },
+  "transcript": {
+    "you": "You",
+    "assistant": "Assistant",
+    "empty": "Say hi — I'll set up your day."
+  },
+  "tasks": {
+    "title": "Today",
+    "empty": "No tasks yet. Try \"Create a task for syncing with the PM at 10 AM\".",
+    "tomorrow": "Tomorrow",
+    "later": "Later"
+  },
+  "errors": {
+    "stt_failed": "I'm having trouble hearing you.",
+    "llm_failed": "Something went wrong on my end.",
+    "tts_failed": "I couldn't speak that aloud.",
+    "auth_failed": "Please sign in to continue.",
+    "rate_limited": "Slow down a moment — too many requests."
+  },
+  "status": {
+    "idle": "Ready",
+    "listening": "Listening",
+    "thinking": "Thinking",
+    "speaking": "Speaking",
+    "executing": "Working on it",
+    "awaiting_confirm": "Waiting for your yes or no"
+  }
+}

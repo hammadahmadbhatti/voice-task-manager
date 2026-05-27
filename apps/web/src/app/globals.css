@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100%;
+  background-color: theme("colors.cream");
+  color: theme("colors.ink");
+  font-feature-settings: "kern", "liga", "calt";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Voice orb gradient */
+.orb-gradient {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(232, 93, 31, 1) 0%,
+    rgba(232, 93, 31, 0.85) 40%,
+    rgba(10, 10, 10, 0.95) 100%
+  );
+}
+.orb-listening {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(99, 102, 241, 1) 0%,
+    rgba(59, 130, 246, 0.85) 40%,
+    rgba(10, 10, 10, 0.95) 100%
+  );
+}
+.orb-thinking {
+  background: conic-gradient(
+    from 0deg,
+    rgba(232, 93, 31, 0.8),
+    rgba(99, 102, 241, 0.8),
+    rgba(232, 93, 31, 0.8)
+  );
+  animation: orb-spin 1.6s linear infinite;
+}
+.orb-speaking {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(34, 197, 94, 1) 0%,
+    rgba(16, 185, 129, 0.85) 40%,
+    rgba(10, 10, 10, 0.95) 100%
+  );
+}
+@keyframes orb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

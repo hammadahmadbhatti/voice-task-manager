@@ -1,0 +1,67 @@
+name: Deploy web (Vercel)
+
+# Vercel's GitHub App is the canonical path for deploying the Next.js app —
+# it auto-creates preview deploys for PRs and a production deploy on main.
+# This workflow exists as a documented fallback for when you want CLI control,
+# e.g. to gate prod deploys on the CI workflow passing.
+#
+# Setup:
+#   1. Connect the repo to Vercel via their GitHub App (recommended path)
+#      → no workflow needed; Vercel handles everything.
+#   2. OR fall back to this workflow:
+#      - Vercel CLI → `vercel link` locally, commit the `.vercel/` folder
+#      - Add repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+#      - Add repo variables for NEXT_PUBLIC_* values
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "packages/shared/**"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+# The job is skipped unless VERCEL_TOKEN is set as a secret.
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    # Skip entirely if user is on the GitHub App path (no secret configured).
+    if: ${{ vars.USE_VERCEL_CLI == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Pull Vercel env
+        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+        working-directory: apps/web
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build
+        run: vercel build --prod --token=$VERCEL_TOKEN
+        working-directory: apps/web
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy
+        run: vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+        working-directory: apps/web
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

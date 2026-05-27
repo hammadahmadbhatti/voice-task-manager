@@ -1,0 +1,50 @@
+{
+  "app": {
+    "title": "Sprachgesteuerter Aufgabenmanager",
+    "tagline": "Plane deinen Tag, indem du mit ihm sprichst.",
+    "tagline_long": "Aufgaben planen, verschieben und löschen — nur durch Sprechen. Keine Knöpfe. Kein Tippen."
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signUp": "Konto erstellen",
+    "continueAsGuest": "Als Gast fortfahren",
+    "signInWithGoogle": "Mit Google anmelden",
+    "signOut": "Abmelden",
+    "userMenu": "Konto"
+  },
+  "mic": {
+    "tapToTalk": "Antippen zum Sprechen",
+    "listening": "Höre zu…",
+    "thinking": "Denke nach…",
+    "speaking": "Spreche…",
+    "interrupt": "Unterbrechen",
+    "permission": "Wir brauchen dein Mikrofon. Bitte gewähre Zugriff im Browser.",
+    "blocked": "Mikrofonzugriff ist blockiert. Aktiviere ihn in den Seiteneinstellungen."
+  },
+  "transcript": {
+    "you": "Du",
+    "assistant": "Assistent",
+    "empty": "Sag hi — ich richte dir den Tag ein."
+  },
+  "tasks": {
+    "title": "Heute",
+    "empty": "Noch keine Aufgaben. Versuch: „Erstelle eine Aufgabe, um 10 Uhr mit dem PM zu syncen“.",
+    "tomorrow": "Morgen",
+    "later": "Später"
+  },
+  "errors": {
+    "stt_failed": "Ich habe Probleme, dich zu verstehen.",
+    "llm_failed": "Da ist bei mir etwas schiefgelaufen.",
+    "tts_failed": "Ich konnte das nicht vorlesen.",
+    "auth_failed": "Bitte melde dich an, um fortzufahren.",
+    "rate_limited": "Einen Moment — zu viele Anfragen."
+  },
+  "status": {
+    "idle": "Bereit",
+    "listening": "Höre zu",
+    "thinking": "Denke nach",
+    "speaking": "Spreche",
+    "executing": "Arbeite daran",
+    "awaiting_confirm": "Warte auf dein Ja oder Nein"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "voice-task-manager",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voice-controlled task manager — hybrid AWS + specialized vendors architecture",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:web": "pnpm --filter @vtm/web dev",
+    "dev:realtime": "pnpm --filter @vtm/realtime dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "db:local": "docker compose up -d postgres",
+    "db:local:setup": "pnpm --filter @vtm/realtime exec tsx scripts/setup-local-db.ts",
+    "db:local:stop": "docker compose down",
+    "db:local:reset": "docker compose down -v && docker compose up -d postgres"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
