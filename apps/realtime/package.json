@@ -17,14 +17,14 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
-    "@aws-sdk/client-cognito-identity-provider": "^3.609.0",
-    "@aws-sdk/client-polly": "^3.609.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.1054.0",
+    "@aws-sdk/client-polly": "^3.1054.0",
     "@deepgram/sdk": "^3.5.0",
     "@vtm/shared": "workspace:*",
     "aws-jwt-verify": "^4.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.33.0",
+    "drizzle-orm": "^0.45.2",
     "express": "^4.19.2",
     "openai": "^4.55.0",
     "pg": "^8.12.0",
@@ -40,7 +40,7 @@
     "@types/node": "^20.14.10",
     "@types/pg": "^8.11.6",
     "@vitest/coverage-v8": "^2.0.3",
-    "drizzle-kit": "^0.24.0",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
     "vitest": "^2.0.3"
