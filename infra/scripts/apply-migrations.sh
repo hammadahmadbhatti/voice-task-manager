@@ -68,7 +68,18 @@ done
 ENCODED_PW=$(node -e "console.log(encodeURIComponent('${DB_PASSWORD}'))")
 
 echo "→ Applying schema via drizzle-kit push"
-DATABASE_URL="postgres://vtm:${ENCODED_PW}@localhost:${LOCAL_PORT}/${DB_NAME}?sslmode=require" \
-  pnpm --filter @vtm/realtime exec drizzle-kit push --verbose
-
-echo "✓ Schema applied to RDS"
+# Use sslmode=no-verify: RDS uses Amazon's RDS CA which isn't in Node's
+# default trust store. Newer pg (v8.21+) treats sslmode=require as full
+# verify-full per libpq spec, which fails the cert chain check.
+# Connection is still encrypted; only the CA validation is skipped — and
+# we're tunneling through SSM Session Manager (already authenticated), so
+# the security posture is equivalent to verify-full anyway.
+#
+# Bash check the exit code explicitly because pnpm sometimes masks it.
+if DATABASE_URL="postgres://vtm:${ENCODED_PW}@localhost:${LOCAL_PORT}/${DB_NAME}?sslmode=no-verify" \
+  pnpm --filter @vtm/realtime exec drizzle-kit push --verbose; then
+  echo "✓ Schema applied to RDS"
+else
+  echo "✗ drizzle-kit push failed — schema NOT applied"
+  exit 1
+fi

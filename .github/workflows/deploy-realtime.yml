@@ -27,6 +27,10 @@ jobs:
     name: Build + deploy
     runs-on: ubuntu-latest
     environment: production
+    # Auto-skip if AWS variables aren't configured yet (pre-Terraform-apply).
+    # Once you've run `terraform apply` and set the repo variables, this guard
+    # is inert and the job runs normally.
+    if: ${{ vars.AWS_DEPLOY_ROLE_ARN != '' && vars.EC2_INSTANCE_ID != '' && vars.DEPLOY_BUCKET != '' }}
     steps:
       - uses: actions/checkout@v6
 
@@ -93,8 +97,11 @@ jobs:
           # The script is embedded inline so the EC2 instance doesn't need
           # any pre-deployed deploy tooling. Pull → atomic swap → pm2 reload
           # → health probe with rollback on failure.
+          # NOTE: SSM AWS-RunShellScript executes via /bin/sh which is `dash`
+          # on Ubuntu — NOT bash. `set -o pipefail` is bash-only. Use `set -eu`
+          # at the outer level; the inner `bash -lc` blocks restore pipefail.
           CMD=$(cat <<'SCRIPT'
-          set -euo pipefail
+          set -eu
           DEPLOY_ID="__DEPLOY_ID__"
           S3_URI="__S3_URI__"
           log() { echo "[$(date -Iseconds)] [deploy:$DEPLOY_ID] $*"; }

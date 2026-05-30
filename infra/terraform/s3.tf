@@ -30,6 +30,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "audio" {
     id     = "archive-then-expire"
     status = "Enabled"
 
+    # Empty filter = applies to every object in the bucket.
+    # Required by AWS provider v4+: each rule must declare exactly one of
+    # `filter` or `prefix`. Omitting both is a deprecation warning today
+    # and an error in future provider versions.
+    filter {}
+
     transition {
       days          = 30
       storage_class = "GLACIER_IR"

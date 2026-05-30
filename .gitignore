@@ -74,3 +74,4 @@ coverage/
 .DS_Store
 ._*
 Thumbs.db
+.vercel

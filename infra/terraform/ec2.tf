@@ -14,18 +14,12 @@ data "aws_subnets" "default" {
   }
 }
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-jammy-22.04-amd64-server-*"]
-  }
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
+# Canonical publishes an always-current SSM parameter pointing at their
+# latest Ubuntu 22.04 LTS AMI. This is more reliable than name-pattern
+# filters because Canonical occasionally changes the AMI naming (e.g.
+# hvm-ssd → hvm-ssd-gp3) per release and per region.
+data "aws_ssm_parameter" "ubuntu_ami" {
+  name = "/aws/service/canonical/ubuntu/server/22.04/stable/current/amd64/hvm/ebs-gp2/ami-id"
 }
 
 resource "aws_security_group" "realtime" {
@@ -83,7 +77,7 @@ locals {
 }
 
 resource "aws_instance" "realtime" {
-  ami                         = data.aws_ami.ubuntu.id
+  ami                         = data.aws_ssm_parameter.ubuntu_ami.value
   instance_type               = var.ec2_instance_type
   subnet_id                   = data.aws_subnets.default.ids[0]
   vpc_security_group_ids      = [aws_security_group.realtime.id]
