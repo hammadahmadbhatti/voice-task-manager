@@ -33,7 +33,7 @@ jobs:
     # Skip entirely if user is on the GitHub App path (no secret configured).
     if: ${{ vars.USE_VERCEL_CLI == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v4
         with: { version: 9 }
