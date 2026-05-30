@@ -40,7 +40,7 @@ export class VADController {
       // Silero v5 defaults are aggressive; soften them slightly for natural speech.
       positiveSpeechThreshold: 0.6,
       negativeSpeechThreshold: 0.4,
-      minSpeechFrames: 4,
+      minSpeechMs: 40,
       preSpeechPadFrames: 4,
       redemptionFrames: 12,
       onSpeechStart: () => this.cb?.onSpeechStart(),
