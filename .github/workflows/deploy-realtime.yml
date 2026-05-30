@@ -45,27 +45,37 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Build realtime
-        run: pnpm --filter @vtm/realtime build
+      - name: Build shared + realtime
+        run: |
+          pnpm --filter @vtm/shared build
+          pnpm --filter @vtm/realtime build
 
       # --- Package ---
+      # `pnpm deploy --prod` produces a portable, self-contained directory
+      # for the realtime workspace: only production deps, a flat
+      # `node_modules` with no symlinks back into the workspace's `.pnpm/`
+      # store, and workspace deps (`@vtm/shared`) materialised in-place.
+      #
+      # The previous recipe (`cp -R apps/realtime/node_modules` + the root
+      # `node_modules`) produced a 200 MB artifact whose symlinks broke as
+      # soon as it was extracted on EC2 — the Node process couldn't resolve
+      # `@vtm/shared` and crashed before opening port 4000, which surfaced
+      # as the 15× "Connection refused" health-probe failure.
       - name: Create deploy artifact
         id: artifact
         run: |
           set -euo pipefail
-          STAGE="$(mktemp -d)"
-          cp -R apps/realtime/dist "$STAGE/dist"
-          cp apps/realtime/package.json "$STAGE/"
-          cp -R apps/realtime/node_modules "$STAGE/node_modules"
-          cp -R packages/shared "$STAGE/shared"
-          # Hoisted root deps that workspace symlinks need
-          if [ -d node_modules ]; then
-            cp -R node_modules "$STAGE/root_node_modules"
-          fi
+          DEPLOY_DIR="$(mktemp -d)/vtm-deploy"
+          pnpm --filter @vtm/realtime --prod deploy "$DEPLOY_DIR"
+
           DEPLOY_ID="${GITHUB_SHA::8}-$(date +%s)"
-          tar -C "$STAGE" -czf "vtm-${DEPLOY_ID}.tgz" .
-          echo "deploy_id=${DEPLOY_ID}" >> $GITHUB_OUTPUT
-          echo "artifact=vtm-${DEPLOY_ID}.tgz" >> $GITHUB_OUTPUT
+          # Defence in depth: never let a workspace `.env` ship even if one
+          # somehow lands on the runner.
+          tar -C "$DEPLOY_DIR" --exclude='./.env' --exclude='./.env.*' \
+              -czf "vtm-${DEPLOY_ID}.tgz" .
+          ls -lh "vtm-${DEPLOY_ID}.tgz"
+          echo "deploy_id=${DEPLOY_ID}" >> "$GITHUB_OUTPUT"
+          echo "artifact=vtm-${DEPLOY_ID}.tgz" >> "$GITHUB_OUTPUT"
 
       # --- AWS auth (OIDC) ---
       - name: Configure AWS credentials via OIDC
@@ -81,7 +91,7 @@ jobs:
         run: |
           set -euo pipefail
           KEY="deploys/${{ steps.artifact.outputs.deploy_id }}.tgz"
-          aws s3 cp "${{ steps.artifact.outputs.artifact }}" "s3://${{ vars.DEPLOY_BUCKET }}/${KEY}"
+          aws s3 cp --no-progress "${{ steps.artifact.outputs.artifact }}" "s3://${{ vars.DEPLOY_BUCKET }}/${KEY}"
           echo "s3_uri=s3://${{ vars.DEPLOY_BUCKET }}/${KEY}" >> $GITHUB_OUTPUT
 
       # --- Trigger SSM deploy on the EC2 instance ---
@@ -108,7 +118,9 @@ jobs:
 
           log "Pulling artifact"
           install -d -o vtm -g vtm /opt/vtm/incoming
-          aws s3 cp "$S3_URI" /opt/vtm/incoming/app.tgz
+          # --no-progress: otherwise SSM captures every progress-bar refresh
+          # as a separate output line, drowning the real log.
+          aws s3 cp --no-progress "$S3_URI" /opt/vtm/incoming/app.tgz
 
           log "Unpacking"
           sudo install -d -o vtm -g vtm /opt/vtm/app.new
