@@ -53,9 +53,13 @@ resource "aws_db_subnet_group" "default" {
 }
 
 resource "aws_db_instance" "main" {
-  identifier        = "${local.name_prefix}-pg"
-  engine            = "postgres"
-  engine_version    = "16.4"
+  identifier = "${local.name_prefix}-pg"
+  engine     = "postgres"
+  # Use the major version only — RDS picks the latest available minor.
+  # Pinning to a specific minor (e.g. "16.4") breaks if AWS retires it,
+  # which they do every few months. Combined with auto_minor_version_upgrade
+  # (default true) this keeps us on a supported minor without churn.
+  engine_version    = "16"
   instance_class    = "db.t4g.micro"
   allocated_storage = 20
   storage_type      = "gp3"
@@ -66,16 +70,21 @@ resource "aws_db_instance" "main" {
   password = random_password.db.result
   port     = 5432
 
-  multi_az                = false # free tier is single-AZ
-  publicly_accessible     = false
-  db_subnet_group_name    = aws_db_subnet_group.default.name
-  vpc_security_group_ids  = [aws_security_group.rds.id]
-  backup_retention_period = 7
-  backup_window           = "03:00-04:00"
-  maintenance_window      = "sun:04:00-sun:05:00"
-  deletion_protection     = false # set true for prod environments
-  skip_final_snapshot     = true  # set false for prod
-  apply_immediately       = true
+  multi_az             = false # free tier is single-AZ
+  publicly_accessible  = false
+  db_subnet_group_name = aws_db_subnet_group.default.name
+
+  vpc_security_group_ids = [aws_security_group.rds.id]
+
+  # AWS new-account Free Tier explicitly forbids backup_retention_period > 0
+  # ("FreeTierRestrictionError"). For prod, set this to 7 once you're off
+  # the free tier or move to a paid account plan.
+  backup_retention_period = 0
+
+  maintenance_window           = "sun:04:00-sun:05:00"
+  deletion_protection          = false # set true for prod environments
+  skip_final_snapshot          = true  # set false for prod
+  apply_immediately            = true
   performance_insights_enabled = false # paid feature
 
   tags = {

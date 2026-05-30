@@ -66,10 +66,10 @@ data "aws_iam_policy_document" "github_assume" {
 }
 
 resource "aws_iam_role" "github_deploy" {
-  count              = var.github_repo != "" ? 1 : 0
-  name               = "${local.name_prefix}-github-deploy"
-  assume_role_policy = data.aws_iam_policy_document.github_assume[0].json
-  description        = "Assumed by GitHub Actions to deploy the realtime backend"
+  count                = var.github_repo != "" ? 1 : 0
+  name                 = "${local.name_prefix}-github-deploy"
+  assume_role_policy   = data.aws_iam_policy_document.github_assume[0].json
+  description          = "Assumed by GitHub Actions to deploy the realtime backend"
   max_session_duration = 3600
 }
 
@@ -110,8 +110,8 @@ data "aws_iam_policy_document" "github_deploy" {
     ]
   }
   statement {
-    sid     = "CommandStatus"
-    actions = ["ssm:GetCommandInvocation", "ssm:ListCommandInvocations", "ssm:ListCommands"]
+    sid       = "CommandStatus"
+    actions   = ["ssm:GetCommandInvocation", "ssm:ListCommandInvocations", "ssm:ListCommands"]
     resources = ["*"]
   }
 
