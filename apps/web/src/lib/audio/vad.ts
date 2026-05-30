@@ -41,8 +41,8 @@ export class VADController {
       positiveSpeechThreshold: 0.6,
       negativeSpeechThreshold: 0.4,
       minSpeechMs: 40,
-      preSpeechPadFrames: 4,
-      redemptionFrames: 12,
+      preSpeechPadMs: 40,
+      redemptionMs: 120,
       onSpeechStart: () => this.cb?.onSpeechStart(),
       // onSpeechEnd receives the captured audio; we ignore it (Deepgram already
       // has the streamed copy) and just signal endpoint.
