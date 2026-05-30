@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Voice-controlled task manager — hybrid AWS + specialized vendors architecture",
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@9",
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "dev:web": "pnpm --filter @vtm/web dev",
