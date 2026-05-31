@@ -157,17 +157,6 @@ export interface ServerPong {
   t: number;
 }
 
-export type ServerMessage =
-  | ServerReady
-  | ServerSttPartial
-  | ServerSttFinal
-  | ServerState
-  | ServerAssistantText
-  | ServerTtsEnd
-  | ServerTaskEvent
-  | ServerError
-  | ServerPong;
-
 // ---------- Audio frame contract ----------
 
 /**
@@ -176,20 +165,41 @@ export type ServerMessage =
  *   Sample rate: 16000 Hz
  *   Frame size:  20–40 ms recommended (320–640 samples = 640–1280 bytes)
  *
- * Audio frames from server are sent as MP3 chunks from ElevenLabs
- * (or PCM from Polly fallback — server sets a content-type header
- * on the first frame via a JSON sentinel:
- *   {"type": "tts_start", "format": "mp3" | "pcm16", "sampleRate": 22050}
+ * Audio frames from server are sent as MP3 chunks from ElevenLabs / Polly.
+ * The first frame is preceded by a `tts_start` sentinel describing the
+ * format the client should decode and which provider produced it.
  */
+export type TtsProvider = "elevenlabs" | "polly" | "browser";
+
 export interface ServerTtsStart {
   type: "tts_start";
   format: "mp3" | "pcm16";
   sampleRate: number;
+  /**
+   * Which server-side provider produced the audio that follows.
+   *   - "elevenlabs" / "polly": stream MP3 chunks via the audio channel
+   *   - "browser": the server has no audio for this turn; the client
+   *     should speak `text` itself via SpeechSynthesis. No audio chunks
+   *     will arrive before `tts_end`.
+   */
+  provider: TtsProvider;
+  /**
+   * Present when `provider === "browser"`: the text the client must read
+   * aloud. It's included here because `assistant_text done=true` already
+   * cleared the streamed buffer on the client by the time `tts_start`
+   * arrives.
+   */
+  text?: string;
 }
 
-// Augment ServerMessage union
-declare module "./protocol.js" {
-  interface ServerMessageMap {
-    tts_start: ServerTtsStart;
-  }
-}
+export type ServerMessage =
+  | ServerReady
+  | ServerSttPartial
+  | ServerSttFinal
+  | ServerState
+  | ServerAssistantText
+  | ServerTtsStart
+  | ServerTtsEnd
+  | ServerTaskEvent
+  | ServerError
+  | ServerPong;

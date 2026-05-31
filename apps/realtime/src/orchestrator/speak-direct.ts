@@ -27,10 +27,12 @@ export async function speakDirect(
 
   const result = await openTtsStream(text, session.locale, signal);
   send({
-    type: "tts_start" as never,
+    type: "tts_start",
     format: result.format,
-    sampleRate: 22050
-  } as unknown as ServerMessage);
+    sampleRate: 22050,
+    provider: result.provider,
+    ...(result.provider === "browser" ? { text } : {})
+  });
 
   let bytes = 0;
   try {

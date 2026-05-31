@@ -421,12 +421,17 @@ async function speak(
 
   const result = await openTtsStream(text, session.locale, signal);
 
-  // Tell client what format to expect
+  // Tell the client which provider produced the audio (or that none did).
+  // When provider === "browser", we also send the text so the client can
+  // hand it to SpeechSynthesis — `assistant_text done=true` has already
+  // cleared the streamed buffer by this point.
   send({
-    type: "tts_start" as never,
+    type: "tts_start",
     format: result.format,
-    sampleRate: 22050
-  } as unknown as ServerMessage);
+    sampleRate: 22050,
+    provider: result.provider,
+    ...(result.provider === "browser" ? { text } : {})
+  });
 
   let bytes = 0;
   try {
