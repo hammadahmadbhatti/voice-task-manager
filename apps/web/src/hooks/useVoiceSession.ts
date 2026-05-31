@@ -207,6 +207,25 @@ export function useVoiceSession(opts: UseVoiceSessionOptions): VoiceSession {
             setAssistantText("");
           }
           break;
+        case "tts_start": {
+          const { generation } = playerRef.current!.start();
+          currentGenRef.current = generation;
+          setTtsProvider(msg.provider);
+          // Server-signaled browser fallback: both ElevenLabs and Polly
+          // failed, so no audio chunks will arrive. The server sends the
+          // text on `msg.text` because `assistantText` (the streamed
+          // buffer) has already been flushed by `assistant_text done`.
+          if (msg.provider === "browser") {
+            const toSpeak = msg.text ?? assistantText;
+            if (toSpeak) {
+              browserTtsRef.current = speakWithBrowserSynthesis(
+                toSpeak,
+                opts.locale
+              );
+            }
+          }
+          break;
+        }
         case "tts_end":
           playerRef.current?.end(currentGenRef.current);
           break;
@@ -220,27 +239,6 @@ export function useVoiceSession(opts: UseVoiceSessionOptions): VoiceSession {
         case "pong":
           // Handled in VtmSocket via onLatency
           break;
-        default: {
-          // `tts_start` is sent by the server; widen the type here
-          const m = msg as unknown as {
-            type: string;
-            format?: string;
-            sampleRate?: number;
-            provider?: "elevenlabs" | "polly" | "browser";
-          };
-          if (m.type === "tts_start") {
-            const { generation } = playerRef.current!.start();
-            currentGenRef.current = generation;
-            if (m.provider) setTtsProvider(m.provider);
-            // If server says provider=browser, speak the buffered text via SpeechSynthesis
-            if (m.provider === "browser" && assistantText) {
-              browserTtsRef.current = speakWithBrowserSynthesis(
-                assistantText,
-                opts.locale
-              );
-            }
-          }
-        }
       }
     },
     [refreshTasks, assistantText, opts.locale]

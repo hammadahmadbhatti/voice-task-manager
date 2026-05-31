@@ -1,4 +1,4 @@
-import type { Locale } from "@vtm/shared";
+import type { Locale, TtsProvider } from "@vtm/shared";
 import { streamElevenLabsTts } from "./tts-elevenlabs.js";
 import { streamPollyTts } from "./tts-polly.js";
 import { logger } from "../utils/logger.js";
@@ -12,7 +12,7 @@ import { logger } from "../utils/logger.js";
  * realistically retry, so we only fail over on the first chunk.
  */
 
-export type TtsProvider = "elevenlabs" | "polly" | "browser";
+export type { TtsProvider };
 
 export interface TtsChainResult {
   provider: TtsProvider;
