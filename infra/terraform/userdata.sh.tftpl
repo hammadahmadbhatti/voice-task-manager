@@ -48,7 +48,10 @@ AWS_REGION=${aws_region}
 COGNITO_USER_POOL_ID=${cognito_pool_id}
 COGNITO_CLIENT_ID=${cognito_client_id}
 ALLOWED_ORIGINS=https://${domain_name}
-ALLOW_ANONYMOUS=false
+# Allow sessions without a Cognito JWT so the deployed frontend (which only
+# sends an anonymous UUID) can connect. Flip to false once you wire up
+# auth-required UI flows.
+ALLOW_ANONYMOUS=true
 EOF
 chown vtm:vtm /opt/vtm/.env
 chmod 640 /opt/vtm/.env
