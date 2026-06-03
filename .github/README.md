@@ -1,4 +1,4 @@
-# Voice Task Manager — How It Meets the Assessment
+# Voice Task Manager 
 
 This document explains how the **Voice Task Manager** satisfies each capability in
 the assessment brief, with pointers to the exact code that implements it.
