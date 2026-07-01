@@ -32,7 +32,7 @@ jobs:
     # is inert and the job runs normally.
     if: ${{ vars.AWS_DEPLOY_ROLE_ARN != '' && vars.EC2_INSTANCE_ID != '' && vars.DEPLOY_BUCKET != '' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # --- Build ---
       - uses: pnpm/action-setup@v4
